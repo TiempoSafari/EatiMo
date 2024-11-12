@@ -1,0 +1,41 @@
+/* 自定义颜色变量 */
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #FF9800;
+    --text-color: #333333;
+    --background-color: #F5F5F5;
+}
+
+/* 情绪卡片样式 */
+.emotion-card {
+    transition: transform 0.2s;
+}
+
+.emotion-card:hover {
+    transform: translateY(-5px);
+}
+
+/* 食谱卡片样式 */
+.recipe-card {
+    transition: transform 0.2s;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+}
+
+/* 收藏按钮动画 */
+.favorite-btn {
+    transition: transform 0.2s;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.1);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+} 

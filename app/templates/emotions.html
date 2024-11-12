@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+        <h1 class="text-4xl font-bold text-center mb-12 text-gray-800 tracking-wide">今天的心情如何？</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for emotion in emotions %}
+            <div class="emotion-card rounded-xl shadow-md overflow-hidden cursor-pointer transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+                 onclick="selectEmotion({{ emotion.id }})">
+                <div class="card-content p-8 text-center {% if emotion.name == '开心' %}bg-gradient-to-br from-yellow-100 via-yellow-50 to-orange-50
+                           {% elif emotion.name == '疲惫' %}bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-50
+                           {% elif emotion.name == '焦虑' %}bg-gradient-to-br from-purple-100 via-purple-50 to-pink-50
+                           {% elif emotion.name == '生气' %}bg-gradient-to-br from-red-100 via-red-50 to-orange-50
+                           {% else %}bg-gradient-to-br from-green-100 via-green-50 to-teal-50{% endif %}">
+                    <div class="text-6xl mb-6 transform transition-transform duration-300 hover:scale-110">{{ emotion.icon }}</div>
+                    <h3 class="text-2xl font-semibold mb-3 {% if emotion.name == '开心' %}text-yellow-700
+                           {% elif emotion.name == '疲惫' %}text-blue-700
+                           {% elif emotion.name == '焦虑' %}text-purple-700
+                           {% elif emotion.name == '生气' %}text-red-700
+                           {% else %}text-green-700{% endif %}">
+                        {{ emotion.name }}
+                    </h3>
+                    <p class="text-gray-600">{{ emotion.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.emotion-card {
+    backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.emotion-card:hover {
+    transform: translateY(-8px);
+}
+
+.card-content {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.5));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.emotion-card:hover .card-content::before {
+    opacity: 1;
+}
+
+/* 自定义动画效果 */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+}
+
+.emotion-card:hover .text-6xl {
+    animation: float 2s ease-in-out infinite;
+}
+</style>
+
+<script>
+function selectEmotion(emotionId) {
+    window.location.href = `/recipes?emotion_id=${emotionId}`;
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,22 @@
+EatiMo/
+├── app/
+│   ├── __init__.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── recipes.py
+│   │   └── emotions.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── recipe.py
+│   │   └── emotion.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── auth_service.py
+│   │   └── recommendation.py
+│   └── utils/
+│       ├── __init__.py
+│       └── constants.py
+├── config.py
+└── requirements.txt 

@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 添加 Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="min-h-screen">
+    <!-- 顶部图片区域 -->
+    <div class="relative h-[50vh]">
+        <img src="{{ recipe.image_url }}" alt="{{ recipe.name }}" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+        <div class="absolute bottom-8 left-8 right-8">
+            <h1 class="text-4xl font-bold text-white mb-4">{{ recipe.name }}</h1>
+            <p class="text-gray-200 text-lg">{{ recipe.description }}</p>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="p-8 {% if '甜点' in recipe.tags|map(attribute='name') %}bg-gradient-to-br from-pink-50 to-orange-50
+                {% elif '汤' in recipe.tags|map(attribute='name') %}bg-gradient-to-br from-blue-50 to-cyan-50
+                {% elif '辣' in recipe.tags|map(attribute='name') %}bg-gradient-to-br from-red-50 to-orange-50
+                {% elif '养生' in recipe.tags|map(attribute='name') %}bg-gradient-to-br from-green-50 to-emerald-50
+                {% else %}bg-gradient-to-br from-purple-50 to-indigo-50{% endif %}">
+        
+        <!-- 基本信息和标签 -->
+        <div class="max-w-6xl mx-auto mb-12">
+            <div class="flex flex-wrap items-center gap-6 mb-6">
+                <div class="flex items-center px-4 py-2 bg-white/50 backdrop-blur-sm rounded-lg">
+                    <i class="fas fa-clock mr-2 text-gray-500"></i>
+                    <span class="text-gray-700">{{ recipe.cooking_time }}分钟</span>
+                </div>
+                <div class="flex items-center px-4 py-2 bg-white/50 backdrop-blur-sm rounded-lg">
+                    <i class="fas fa-signal mr-2 text-gray-500"></i>
+                    <span class="text-gray-700">{{ recipe.difficulty }}</span>
+                </div>
+                <div class="flex items-center px-4 py-2 bg-white/50 backdrop-blur-sm rounded-lg">
+                    <i class="fas fa-fire mr-2 text-gray-500"></i>
+                    <span class="text-gray-700">{{ recipe.calories }}卡路里</span>
+                </div>
+                <button onclick="toggleFavorite({{ recipe.id }})" 
+                        class="favorite-btn ml-auto text-2xl text-gray-400 hover:text-yellow-500 transition-colors">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                {% for tag in recipe.tags %}
+                <span class="px-4 py-2 rounded-full text-sm font-medium {% if tag.name == '甜点' %}bg-pink-100 text-pink-700
+                            {% elif tag.name == '汤' %}bg-blue-100 text-blue-700
+                            {% elif tag.name == '辣' %}bg-red-100 text-red-700
+                            {% elif tag.name == '养生' %}bg-green-100 text-green-700
+                            {% else %}bg-purple-100 text-purple-700{% endif %}">
+                    {{ tag.name }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 营养信息 -->
+        <div class="max-w-6xl mx-auto mb-12">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">营养成分</h2>
+            <div class="bg-white/50 backdrop-blur-sm p-8 rounded-xl shadow-sm max-w-lg mx-auto">
+                <canvas id="nutritionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 食材列表 -->
+        <div class="max-w-6xl mx-auto mb-12">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">食材准备</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {% for ingredient in recipe.ingredients %}
+                <div class="ingredient-card bg-white/60 backdrop-blur-sm rounded-xl overflow-hidden transform transition-all duration-300 hover:shadow-lg 
+                            {% if '甜点' in recipe.tags|map(attribute='name') %}hover:border-pink-200
+                            {% elif '汤' in recipe.tags|map(attribute='name') %}hover:border-blue-200
+                            {% elif '辣' in recipe.tags|map(attribute='name') %}hover:border-red-200
+                            {% elif '养生' in recipe.tags|map(attribute='name') %}hover:border-green-200
+                            {% else %}hover:border-purple-200{% endif %} border-2 border-transparent">
+                    <label class="flex flex-col h-full cursor-pointer p-4">
+                        <input type="checkbox" 
+                               class="ingredient-checkbox hidden" 
+                               data-ingredient="{{ ingredient.name }}"
+                               data-recipe="{{ recipe.id }}">
+                        <div class="flex items-center mb-2">
+                            <div class="checkbox-custom w-5 h-5 rounded border-2 mr-3 flex items-center justify-center
+                                        {% if '甜点' in recipe.tags|map(attribute='name') %}border-pink-300
+                                        {% elif '汤' in recipe.tags|map(attribute='name') %}border-blue-300
+                                        {% elif '辣' in recipe.tags|map(attribute='name') %}border-red-300
+                                        {% elif '养生' in recipe.tags|map(attribute='name') %}border-green-300
+                                        {% else %}border-purple-300{% endif %}">
+                                <svg class="w-3 h-3 text-white hidden check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                </svg>
+                            </div>
+                            <span class="text-gray-700 font-medium truncate flex-1">{{ ingredient.name }}</span>
+                        </div>
+                        <div class="text-gray-500 text-sm pl-8">{{ ingredient.amount }}</div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 步骤说明 -->
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">制作步骤</h2>
+            <div class="space-y-6">
+                {% for step in recipe.steps %}
+                <div class="flex items-start bg-white/60 backdrop-blur-sm p-6 rounded-xl">
+                    <div class="flex-shrink-0 w-10 h-10 {% if '甜点' in recipe.tags|map(attribute='name') %}bg-pink-500
+                            {% elif '汤' in recipe.tags|map(attribute='name') %}bg-blue-500
+                            {% elif '辣' in recipe.tags|map(attribute='name') %}bg-red-500
+                            {% elif '养生' in recipe.tags|map(attribute='name') %}bg-green-500
+                            {% else %}bg-purple-500{% endif %} 
+                         text-white rounded-full flex items-center justify-center font-bold text-lg">
+                        {{ loop.index }}
+                    </div>
+                    <p class="ml-6 text-gray-700 text-lg">{{ step }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 初始化营养成分饼图
+const ctx = document.getElementById('nutritionChart').getContext('2d');
+const nutritionChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['蛋白质', '碳水', '脂肪'],
+        datasets: [{
+            data: [
+                {{ recipe.protein }},
+                {{ recipe.carbs }},
+                {{ recipe.fat }}
+            ],
+            backgroundColor: [
+                {% if '甜点' in recipe.tags|map(attribute='name') %}
+                    'rgba(244, 114, 182, 0.8)',  // pink-400
+                    'rgba(251, 146, 60, 0.8)',   // orange-400
+                    'rgba(251, 191, 36, 0.8)'    // amber-400
+                {% elif '汤' in recipe.tags|map(attribute='name') %}
+                    'rgba(96, 165, 250, 0.8)',   // blue-400
+                    'rgba(45, 212, 191, 0.8)',   // teal-400
+                    'rgba(129, 140, 248, 0.8)'   // indigo-400
+                {% elif '辣' in recipe.tags|map(attribute='name') %}
+                    'rgba(248, 113, 113, 0.8)',  // red-400
+                    'rgba(251, 146, 60, 0.8)',   // orange-400
+                    'rgba(251, 191, 36, 0.8)'    // amber-400
+                {% elif '养生' in recipe.tags|map(attribute='name') %}
+                    'rgba(74, 222, 128, 0.8)',   // green-400
+                    'rgba(52, 211, 153, 0.8)',   // emerald-400
+                    'rgba(45, 212, 191, 0.8)'    // teal-400
+                {% else %}
+                    'rgba(167, 139, 250, 0.8)',  // purple-400
+                    'rgba(129, 140, 248, 0.8)',  // indigo-400
+                    'rgba(96, 165, 250, 0.8)'    // blue-400
+                {% endif %}
+            ],
+            borderWidth: 0,
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            title: {
+                display: true,
+                text: '营养成分比例',
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                },
+                padding: {
+                    bottom: 20
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label || '';
+                        const value = context.raw || 0;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = Math.round((value / total) * 100);
+                        return `${label}: ${value}g (${percentage}%)`;
+                    }
+                }
+            }
+        },
+        cutout: '60%',
+        animation: {
+            animateScale: true,
+            animateRotate: true
+        }
+    }
+});
+
+// 添加中心文字
+Chart.register({
+    id: 'centerText',
+    beforeDraw: function(chart) {
+        const width = chart.width;
+        const height = chart.height;
+        const ctx = chart.ctx;
+        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+
+        ctx.restore();
+        ctx.font = '16px sans-serif';
+        ctx.fillStyle = '#4B5563';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText(`总计`, width / 2, height / 2 - 10);
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText(`${total.toFixed(1)}g`, width / 2, height / 2 + 15);
+        ctx.save();
+    }
+});
+
+// 处理食材复选框
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.ingredient-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        const ingredientName = checkbox.dataset.ingredient;
+        const recipeId = checkbox.dataset.recipe;
+        const storageKey = `recipe_${recipeId}_ingredient_${ingredientName}`;
+        
+        // 恢复保存的状态
+        const savedState = localStorage.getItem(storageKey);
+        if (savedState === 'true') {
+            checkbox.checked = true;
+            updateCheckboxStyle(checkbox);
+        }
+        
+        // 添加点击事件监听器
+        checkbox.addEventListener('change', function() {
+            localStorage.setItem(storageKey, checkbox.checked);
+            updateCheckboxStyle(checkbox);
+        });
+    });
+});
+
+// 更新复选框样式
+function updateCheckboxStyle(checkbox) {
+    const parent = checkbox.closest('.ingredient-card');
+    const checkIcon = parent.querySelector('.check-icon');
+    const ingredientText = parent.querySelector('span');
+    const amountText = parent.querySelector('.text-gray-500');
+    
+    if (checkbox.checked) {
+        checkIcon.classList.remove('hidden');
+        ingredientText.classList.add('line-through', 'text-gray-400');
+        amountText.classList.add('line-through', 'text-gray-400');
+        parent.querySelector('.checkbox-custom').classList.add(
+            {% if '甜点' in recipe.tags|map(attribute='name') %}
+                'bg-pink-500', 'border-pink-500'
+            {% elif '汤' in recipe.tags|map(attribute='name') %}
+                'bg-blue-500', 'border-blue-500'
+            {% elif '辣' in recipe.tags|map(attribute='name') %}
+                'bg-red-500', 'border-red-500'
+            {% elif '养生' in recipe.tags|map(attribute='name') %}
+                'bg-green-500', 'border-green-500'
+            {% else %}
+                'bg-purple-500', 'border-purple-500'
+            {% endif %}
+        );
+    } else {
+        checkIcon.classList.add('hidden');
+        ingredientText.classList.remove('line-through', 'text-gray-400');
+        amountText.classList.remove('line-through', 'text-gray-400');
+        parent.querySelector('.checkbox-custom').classList.remove(
+            {% if '甜点' in recipe.tags|map(attribute='name') %}
+                'bg-pink-500', 'border-pink-500'
+            {% elif '汤' in recipe.tags|map(attribute='name') %}
+                'bg-blue-500', 'border-blue-500'
+            {% elif '辣' in recipe.tags|map(attribute='name') %}
+                'bg-red-500', 'border-red-500'
+            {% elif '养生' in recipe.tags|map(attribute='name') %}
+                'bg-green-500', 'border-green-500'
+            {% else %}
+                'bg-purple-500', 'border-purple-500'
+            {% endif %}
+        );
+    }
+}
+</script>
+
+<style>
+/* 渐变背景动画 */
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.recipe-detail {
+    background-size: 200% 200%;
+    animation: gradient 15s ease infinite;
+}
+
+/* 复选框样式 */
+.form-checkbox {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-checkbox:checked {
+    transform: scale(1.1);
+}
+
+/* 步骤卡片悬浮效果 */
+.step-card {
+    transition: transform 0.2s ease;
+}
+
+.step-card:hover {
+    transform: translateX(5px);
+}
+
+/* 收藏按钮动画 */
+.favorite-btn {
+    transition: all 0.3s ease;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.2);
+}
+
+/* 食材卡片样式 */
+.ingredient-card {
+    transition: all 0.3s ease;
+}
+
+.ingredient-checkbox:checked + div .checkbox-custom {
+    {% if '甜点' in recipe.tags|map(attribute='name') %}
+        @apply bg-pink-500 border-pink-500;
+    {% elif '汤' in recipe.tags|map(attribute='name') %}
+        @apply bg-blue-500 border-blue-500;
+    {% elif '辣' in recipe.tags|map(attribute='name') %}
+        @apply bg-red-500 border-red-500;
+    {% elif '养生' in recipe.tags|map(attribute='name') %}
+        @apply bg-green-500 border-green-500;
+    {% else %}
+        @apply bg-purple-500 border-purple-500;
+    {% endif %}
+}
+
+.ingredient-checkbox:checked + div .check-icon {
+    display: block;
+}
+
+.ingredient-checkbox:checked + div + div {
+    @apply text-gray-400 line-through;
+}
+
+.checkbox-custom {
+    transition: all 0.2s ease;
+}
+
+.ingredient-card:hover .checkbox-custom {
+    transform: scale(1.1);
+}
+
+/* 添加动画效果 */
+@keyframes checkmark {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.ingredient-checkbox:checked + div .check-icon {
+    animation: checkmark 0.2s ease-in-out;
+}
+</style>
+{% endblock %} 

@@ -6,42 +6,51 @@
     <title>{% block title %}食语心晴{% endblock %}</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- 引入自定义样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-    <!-- 导航栏 -->
-    <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="flex justify-between">
-                <div class="flex space-x-7">
-                    <a href="{{ url_for('main.index') }}" class="flex items-center py-4">
-                        <span class="font-semibold text-xl bg-gradient-to-r from-green-600 to-blue-500 bg-clip-text text-transparent">食语心晴</span>
-                    </a>
-                </div>
-                <div class="flex items-center space-x-3">
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('main.profile') }}" class="py-2 px-4 text-gray-600 hover:text-gray-900 transition-colors">个人中心</a>
-                        <a href="{{ url_for('auth.logout') }}" class="py-2 px-4 text-gray-600 hover:text-gray-900 transition-colors">退出</a>
-                    {% else %}
-                        <a href="{{ url_for('auth.login') }}" class="py-2 px-4 text-gray-600 hover:text-gray-900 transition-colors">登录</a>
-                        <a href="{{ url_for('auth.register') }}" class="py-2 px-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:opacity-90 transition-opacity">注册</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </nav>
-
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pb-16">
     <!-- 主要内容区 -->
     <main>
         {% block content %}{% endblock %}
     </main>
 
-    <!-- 页脚 -->
-    <footer class="bg-white/80 backdrop-blur-md mt-12 py-6">
-        <div class="container mx-auto px-4 text-center text-gray-500">
-            <p>&copy; 2024 食语心晴. All rights reserved.</p>
+    <!-- 底部导航栏 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-lg border-t border-gray-200">
+        <div class="max-w-md mx-auto px-4">
+            <div class="flex justify-around py-2">
+                <a href="{{ url_for('main.index') }}" class="flex flex-col items-center py-2 px-4 text-gray-600 hover:text-green-500 transition-colors {% if request.endpoint in ['main.index', 'recipes.list_recipes'] %}active-nav-item{% endif %}" data-page="emotions">
+                    <i class="fas fa-heart text-xl mb-1"></i>
+                    <span class="text-xs">心情</span>
+                </a>
+                <a href="#" class="flex flex-col items-center py-2 px-4 text-gray-600 hover:text-green-500 transition-colors {% if request.endpoint == 'calendar' %}active-nav-item{% endif %}" data-page="calendar">
+                    <i class="fas fa-calendar-alt text-xl mb-1"></i>
+                    <span class="text-xs">日历</span>
+                </a>
+                <a href="{{ url_for('main.profile') }}" class="flex flex-col items-center py-2 px-4 text-gray-600 hover:text-green-500 transition-colors {% if request.endpoint == 'main.profile' %}active-nav-item{% endif %}" data-page="profile">
+                    <i class="fas fa-user text-xl mb-1"></i>
+                    <span class="text-xs">我的</span>
+                </a>
+            </div>
         </div>
-    </footer>
+    </nav>
+
+    <style>
+    /* 添加激活状态样式 */
+    .active-nav-item {
+        @apply text-green-500;
+    }
+
+    /* 添加点击反馈效果 */
+    nav a {
+        transition: transform 0.1s;
+    }
+
+    nav a:active {
+        transform: scale(0.95);
+    }
+    </style>
 </body>
 </html> 
